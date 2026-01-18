@@ -63,7 +63,7 @@ Keep SKILL.md under 500 lines. Split detailed content into references/ files and
 
 ## Installing Skills in Claude Code
 ```
-/plugin marketplace add anthropics/skills
+/plugin marketplace add devm0rt/skills
 /plugin install document-skills@anthropic-agent-skills
 /plugin install example-skills@anthropic-agent-skills
 ```

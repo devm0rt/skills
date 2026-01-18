@@ -159,16 +159,21 @@ Production skills powering [Claude's document capabilities](https://www.anthropi
 
 | Skill | Description |
 |-------|-------------|
-| [algorithmic-art](./dev-skills/algorithmic-art) | Generate art with p5.js |
-| [brand-guidelines](./dev-skills/brand-guidelines) | Create brand guideline documents |
-| [canvas-design](./dev-skills/canvas-design) | Design graphics programmatically |
 | [doc-coauthoring](./dev-skills/doc-coauthoring) | Collaborative document workflows |
-| [frontend-design](./dev-skills/frontend-design) | HTML/CSS/JS frontend prototypes |
 | [internal-comms](./dev-skills/internal-comms) | Internal communications templates |
-| [slack-gif-creator](./dev-skills/slack-gif-creator) | Create animated GIFs for Slack |
-| [theme-factory](./dev-skills/theme-factory) | Generate UI themes |
-| [web-artifacts-builder](./dev-skills/web-artifacts-builder) | Build React web components |
-| [webapp-testing](./dev-skills/webapp-testing) | Automated testing with Playwright |
+
+### misc-skills (Apache 2.0)
+
+| Skill | Description |
+|-------|-------------|
+| [algorithmic-art](./misc-skills/algorithmic-art) | Generate art with p5.js |
+| [brand-guidelines](./misc-skills/brand-guidelines) | Create brand guideline documents |
+| [canvas-design](./misc-skills/canvas-design) | Design graphics programmatically |
+| [frontend-design](./misc-skills/frontend-design) | HTML/CSS/JS frontend prototypes |
+| [slack-gif-creator](./misc-skills/slack-gif-creator) | Create animated GIFs for Slack |
+| [theme-factory](./misc-skills/theme-factory) | Generate UI themes |
+| [web-artifacts-builder](./misc-skills/web-artifacts-builder) | Build React web components |
+| [webapp-testing](./misc-skills/webapp-testing) | Automated testing with Playwright |
 
 ## Creating Skills
 

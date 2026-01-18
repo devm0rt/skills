@@ -449,4 +449,4 @@ Skills are validated automatically during packaging. The validator checks:
 4. **Line Limits:**
    - SKILL.md under 500 lines
 
-Run validation manually: `scripts/validate_skill.py <skill-folder>`
+Run validation manually: `scripts/quick_validate.py <skill-folder>`

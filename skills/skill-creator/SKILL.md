@@ -96,7 +96,7 @@ license: Complete terms in LICENSE.txt
 
 **Description:**
 - Include what the skill does AND when to use it
-- Max 500 characters
+- Max 1024 characters
 - High keyword density for discoverability
 - Describe specific triggers/use cases
 

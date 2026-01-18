@@ -185,6 +185,63 @@ Example asset files from other skills:
 Note: This is a text placeholder. Actual assets can be any file type.
 """
 
+TEST_CONFTEST = '''"""Shared pytest fixtures for {skill_name} tests."""
+import sys
+import json
+import pytest
+from pathlib import Path
+
+# Add scripts/ to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
+
+
+@pytest.fixture
+def skill_dir():
+    """Return path to skill root directory."""
+    return Path(__file__).parent.parent
+
+
+@pytest.fixture
+def fixtures_dir():
+    """Return path to test fixtures directory."""
+    return Path(__file__).parent / 'fixtures'
+
+
+@pytest.fixture
+def load_fixture(fixtures_dir):
+    """Factory fixture to load JSON test data."""
+    def _load(filename):
+        with open(fixtures_dir / filename) as f:
+            return json.load(f)
+    return _load
+'''
+
+TEST_EXAMPLE = '''"""Example tests for {skill_name} scripts.
+
+Run tests with: pytest tests/
+
+This file demonstrates the testing pattern for skill scripts.
+Delete or replace with actual tests for your scripts.
+"""
+# Import from scripts/ (path added in conftest.py)
+from example import main
+
+
+def test_example_runs():
+    """Test that the example script runs without error."""
+    # This is a placeholder test - replace with actual tests
+    # for your script functions
+    assert callable(main)
+
+
+def test_placeholder():
+    """Placeholder test - replace with actual tests."""
+    # Example test structure:
+    # result = your_function(input_data)
+    # assert result == expected_output
+    assert True
+'''
+
 
 def title_case_skill_name(skill_name):
     """Convert hyphenated skill name to Title Case for display."""
@@ -287,6 +344,19 @@ def init_skill(skill_name, path):
         example_asset = assets_dir / 'example_asset.txt'
         example_asset.write_text(EXAMPLE_ASSET)
         print("✅ Created assets/example_asset.txt")
+
+        # Create tests/ directory with pytest scaffolding
+        tests_dir = skill_dir / 'tests'
+        tests_dir.mkdir(exist_ok=True)
+        conftest = tests_dir / 'conftest.py'
+        conftest.write_text(TEST_CONFTEST.format(skill_name=skill_name))
+        test_example = tests_dir / 'test_example.py'
+        test_example.write_text(TEST_EXAMPLE.format(skill_name=skill_name))
+        fixtures_dir = tests_dir / 'fixtures'
+        fixtures_dir.mkdir(exist_ok=True)
+        gitkeep = fixtures_dir / '.gitkeep'
+        gitkeep.write_text('')
+        print("✅ Created tests/ directory with pytest scaffolding")
     except Exception as e:
         print(f"❌ Error creating resource directories: {e}")
         return None
@@ -295,8 +365,9 @@ def init_skill(skill_name, path):
     print(f"\n✅ Skill '{skill_name}' initialized successfully at {skill_dir}")
     print("\nNext steps:")
     print("1. Edit SKILL.md to complete the TODO items and update the description")
-    print("2. Customize or delete the example files in scripts/, references/, and assets/")
-    print("3. Run the validator when ready to check the skill structure")
+    print("2. Customize or delete the example files in scripts/, references/, assets/, and tests/")
+    print("3. Write tests in tests/ and run with: pytest tests/")
+    print("4. Run the validator when ready to check the skill structure")
 
     return skill_dir
 

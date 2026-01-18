@@ -230,6 +230,40 @@ report-generator/
 5. Claude outputs modified docx file
 6. Template file never enters context (only file path is referenced)
 
+### tests/ (Excluded from packages)
+
+Test directory for validating scripts. Excluded from `.skill` packages but visible when skill is installed from GitHub.
+
+| Source | tests/ Visibility |
+|--------|-------------------|
+| .skill package | Hidden |
+| GitHub repo | Visible (not auto-loaded) |
+
+**When to use tests:**
+- Validate script behavior with automated tests
+- Ensure scripts work correctly before packaging
+- Regression testing after script changes
+
+**Test directory structure:**
+```
+skill-name/
+├── scripts/
+│   └── process.py
+└── tests/
+    ├── conftest.py       # Shared pytest fixtures
+    ├── test_process.py   # Tests for process.py
+    └── fixtures/         # Test data files
+        └── sample.json
+```
+
+**How tests work:**
+1. Tests live alongside skill code during development
+2. Run `pytest tests/` to validate scripts
+3. When packaging with `package_skill.py`, tests are excluded
+4. Users receive only production code in `.skill` files
+
+See [testing.md](testing.md) for comprehensive testing guidance.
+
 ## Frontmatter Deep Dive
 
 ### name

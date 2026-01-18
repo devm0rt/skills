@@ -216,6 +216,40 @@ This creates:
 - [references/workflows.md](references/workflows.md) - Multi-step processes, conditional logic
 - [references/output-patterns.md](references/output-patterns.md) - Output formats, templates
 
+### Testing Scripts
+
+Use pytest for testing skill scripts. Tests are excluded from `.skill` packages.
+
+**Directory structure:**
+```
+skill-name/
+├── scripts/
+│   └── process.py
+└── tests/              # Excluded from .skill packages
+    ├── conftest.py     # Shared fixtures
+    ├── test_process.py
+    └── fixtures/
+```
+
+**Run tests:** `pytest tests/`
+
+**Example test file:**
+```python
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
+
+from process import transform
+
+def test_transform_basic():
+    result = transform({'input': 'data'})
+    assert result['status'] == 'success'
+```
+
+Tests and these patterns are excluded from packaging: `tests/`, `*_test.py`, `test_*.py`, `conftest.py`, `__pycache__/`, `.pytest_cache/`
+
+See [references/testing.md](references/testing.md) for comprehensive testing guidance.
+
 ### 5. Package Skill (REQUIRED)
 
 **Skills MUST be packaged into .skill files for use.**

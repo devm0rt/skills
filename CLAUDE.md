@@ -60,10 +60,10 @@ Keep SKILL.md under 500 lines. Split detailed content into references/ files and
 - `ai-skills/` - AI agent building skills (Apache 2.0)
   - `mcp-builder/`, `skill-creator/`
 - `dev-skills/` - Developer workflow skills (Apache 2.0)
-  - `doc-coauthoring/`, `internal-comms/`
+  - `doc-coauthoring/`, `internal-comms/`, `webapp-testing/`
 - `misc-skills/` - Creative and experimental skills (Apache 2.0)
   - `algorithmic-art/`, `brand-guidelines/`, `canvas-design/`, `frontend-design/`
-  - `slack-gif-creator/`, `theme-factory/`, `web-artifacts-builder/`, `webapp-testing/`
+  - `slack-gif-creator/`, `theme-factory/`, `web-artifacts-builder/`
 - `spec/` - Link to Agent Skills specification
 - `template/` - Minimal SKILL.md template
 

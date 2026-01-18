@@ -161,6 +161,7 @@ Production skills powering [Claude's document capabilities](https://www.anthropi
 |-------|-------------|
 | [doc-coauthoring](./dev-skills/doc-coauthoring) | Collaborative document workflows |
 | [internal-comms](./dev-skills/internal-comms) | Internal communications templates |
+| [webapp-testing](./dev-skills/webapp-testing) | Automated testing with Playwright |
 
 ### misc-skills (Apache 2.0)
 
@@ -173,7 +174,6 @@ Production skills powering [Claude's document capabilities](https://www.anthropi
 | [slack-gif-creator](./misc-skills/slack-gif-creator) | Create animated GIFs for Slack |
 | [theme-factory](./misc-skills/theme-factory) | Generate UI themes |
 | [web-artifacts-builder](./misc-skills/web-artifacts-builder) | Build React web components |
-| [webapp-testing](./misc-skills/webapp-testing) | Automated testing with Playwright |
 
 ## Creating Skills
 

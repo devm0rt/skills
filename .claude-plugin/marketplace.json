@@ -1,11 +1,11 @@
 {
-  "name": "anthropic-agent-skills",
+  "name": "devm0rt--skills",
   "owner": {
-    "name": "Keith Lazuka",
-    "email": "klazuka@anthropic.com"
+    "name": "devm0rt",
+    "email": "claude_plugin.eyxtu@dralias.com"
   },
   "metadata": {
-    "description": "Anthropic example skills",
+    "description": "Developer quality-of-life tools and AI agent building skills",
     "version": "1.0.0"
   },
   "plugins": [
@@ -22,8 +22,18 @@
       ]
     },
     {
-      "name": "example-skills",
-      "description": "Collection of example skills demonstrating various capabilities including skill creation, MCP building, visual design, algorithmic art, internal communications, web testing, artifact building, Slack GIFs, and theme styling",
+      "name": "ai-skills",
+      "description": "Skills for building AI agents and tools including skill creation and MCP server development",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/mcp-builder",
+        "./skills/skill-creator"
+      ]
+    },
+    {
+      "name": "dev-skills",
+      "description": "Developer day-to-day tools for frontend design, testing, documentation, theming, and creative workflows",
       "source": "./",
       "strict": false,
       "skills": [
@@ -33,8 +43,6 @@
         "./skills/doc-coauthoring",
         "./skills/frontend-design",
         "./skills/internal-comms",
-        "./skills/mcp-builder",
-        "./skills/skill-creator",
         "./skills/slack-gif-creator",
         "./skills/theme-factory",
         "./skills/web-artifacts-builder",

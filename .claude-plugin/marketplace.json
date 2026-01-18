@@ -12,41 +12,41 @@
     {
       "name": "document-skills",
       "description": "Collection of document processing suite including Excel, Word, PowerPoint, and PDF capabilities",
-      "source": "./",
+      "source": "./document-skills",
       "strict": false,
       "skills": [
-        "./skills/xlsx",
-        "./skills/docx",
-        "./skills/pptx",
-        "./skills/pdf"
+        "./xlsx",
+        "./docx",
+        "./pptx",
+        "./pdf"
       ]
     },
     {
       "name": "ai-skills",
       "description": "Skills for building AI agents and tools including skill creation and MCP server development",
-      "source": "./",
+      "source": "./ai-skills",
       "strict": false,
       "skills": [
-        "./skills/mcp-builder",
-        "./skills/skill-creator"
+        "./mcp-builder",
+        "./skill-creator"
       ]
     },
     {
       "name": "dev-skills",
       "description": "Developer day-to-day tools for frontend design, testing, documentation, theming, and creative workflows",
-      "source": "./",
+      "source": "./dev-skills",
       "strict": false,
       "skills": [
-        "./skills/algorithmic-art",
-        "./skills/brand-guidelines",
-        "./skills/canvas-design",
-        "./skills/doc-coauthoring",
-        "./skills/frontend-design",
-        "./skills/internal-comms",
-        "./skills/slack-gif-creator",
-        "./skills/theme-factory",
-        "./skills/web-artifacts-builder",
-        "./skills/webapp-testing"
+        "./algorithmic-art",
+        "./brand-guidelines",
+        "./canvas-design",
+        "./doc-coauthoring",
+        "./frontend-design",
+        "./internal-comms",
+        "./slack-gif-creator",
+        "./theme-factory",
+        "./web-artifacts-builder",
+        "./webapp-testing"
       ]
     }
   ]

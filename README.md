@@ -15,14 +15,16 @@ This repository contains skills that demonstrate what's possible with Claude's s
 
 Each skill is self-contained in its own folder with a `SKILL.md` file containing the instructions and metadata that Claude uses. Browse through these skills to get inspiration for your own skills or to understand different patterns and approaches.
 
-Many skills in this repo are open source (Apache 2.0). We've also included the document creation & editing skills that power [Claude's document capabilities](https://www.anthropic.com/news/create-files) under the hood in the [`skills/docx`](./skills/docx), [`skills/pdf`](./skills/pdf), [`skills/pptx`](./skills/pptx), and [`skills/xlsx`](./skills/xlsx) subfolders. These are source-available, not open source, but we wanted to share these with developers as a reference for more complex skills that are actively used in a production AI application.
+Many skills in this repo are open source (Apache 2.0). We've also included the document creation & editing skills that power [Claude's document capabilities](https://www.anthropic.com/news/create-files) under the hood in the [`document-skills/docx`](./document-skills/docx), [`document-skills/pdf`](./document-skills/pdf), [`document-skills/pptx`](./document-skills/pptx), and [`document-skills/xlsx`](./document-skills/xlsx) subfolders. These are source-available, not open source, but we wanted to share these with developers as a reference for more complex skills that are actively used in a production AI application.
 
 ## Disclaimer
 
 **These skills are provided for demonstration and educational purposes only.** While some of these capabilities may be available in Claude, the implementations and behaviors you receive from Claude may differ from what is shown in these skills. These skills are meant to illustrate patterns and possibilities. Always test skills thoroughly in your own environment before relying on them for critical tasks.
 
 # Skill Sets
-- [./skills](./skills): Skill examples for Creative & Design, Development & Technical, Enterprise & Communication, and Document Skills
+- [./document-skills](./document-skills): Document processing skills (docx, pdf, pptx, xlsx) - source-available
+- [./ai-skills](./ai-skills): AI agent building skills (mcp-builder, skill-creator) - Apache 2.0
+- [./dev-skills](./dev-skills): Developer tools and creative workflows - Apache 2.0
 - [./spec](./spec): The Agent Skills specification
 - [./template](./template): Skill template
 

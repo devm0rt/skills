@@ -25,10 +25,10 @@ skill-name/
 Skills are standalone - no package.json, Makefile, or setup.py. Skills are distributed via Claude Code Plugin Marketplace.
 
 ### Creating a New Skill
-1. Run `skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory>`
+1. Run `ai-skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory>`
 2. Edit SKILL.md frontmatter: `name` and `description` are required
 3. Add scripts/, references/, or assets/ as needed
-4. Package with `skills/skill-creator/scripts/package_skill.py <path/to/skill-folder>`
+4. Package with `ai-skills/skill-creator/scripts/package_skill.py <path/to/skill-folder>`
 
 ### Modifying Skills
 - Read the full SKILL.md first to understand the interface
@@ -55,9 +55,14 @@ Keep SKILL.md under 500 lines. Split detailed content into references/ files and
 
 ## Directory Overview
 
-- `skills/` - All skills (~18 total)
-  - Document skills: `docx/`, `pdf/`, `pptx/`, `xlsx/` (production, source-available)
-  - Example skills: Everything else (Apache 2.0)
+- `document-skills/` - Document processing skills (production, source-available)
+  - `docx/`, `pdf/`, `pptx/`, `xlsx/`
+- `ai-skills/` - AI agent building skills (Apache 2.0)
+  - `mcp-builder/`, `skill-creator/`
+- `dev-skills/` - Developer tools and creative workflows (Apache 2.0)
+  - `algorithmic-art/`, `brand-guidelines/`, `canvas-design/`, `doc-coauthoring/`
+  - `frontend-design/`, `internal-comms/`, `slack-gif-creator/`, `theme-factory/`
+  - `web-artifacts-builder/`, `webapp-testing/`
 - `spec/` - Link to Agent Skills specification
 - `template/` - Minimal SKILL.md template
 

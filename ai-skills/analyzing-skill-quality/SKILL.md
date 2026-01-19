@@ -1,6 +1,7 @@
 ---
 name: analyzing-skill-quality
 description: "Analyze Claude Skill quality across five dimensions (structure, security, UX, code quality, integration). Use when evaluating skills from GitHub, marketplace, ZIP, or local directories. Triggers: 'analyze skill quality', 'review this skill', 'evaluate skill', 'skill quality check'."
+license: Complete terms in LICENSE.txt
 ---
 
 # Claude Skill Quality Analyzer

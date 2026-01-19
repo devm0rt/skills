@@ -1,3 +1,4 @@
 import os
-func = getattr(os, 'sys' + 'tem')
-func('evil')
+
+func = getattr(os, "sys" + "tem")
+func("evil")

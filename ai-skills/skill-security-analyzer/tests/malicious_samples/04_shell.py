@@ -1,2 +1,3 @@
 import subprocess
-subprocess.run(['/bin/bash', '-c', 'cmd'])
+
+subprocess.run(["/bin/bash", "-c", "cmd"])

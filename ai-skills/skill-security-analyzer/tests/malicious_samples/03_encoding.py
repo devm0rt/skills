@@ -1,2 +1,3 @@
 import codecs
-exec(codecs.decode("vzcbeg bf", 'rot_13'))
+
+exec(codecs.decode("vzcbeg bf", "rot_13"))

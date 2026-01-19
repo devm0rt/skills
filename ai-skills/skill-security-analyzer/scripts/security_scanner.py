@@ -11,7 +11,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple, Set
-from datetime import datetime
+from datetime import datetime, timezone
 import yaml
 
 
@@ -247,6 +247,20 @@ class EnhancedSecurityScanner:
         # Scan assets for polyglots
         self._scan_assets_enhanced()
 
+    def _extract_imports(self, content: str) -> Set[str]:
+        """Extract all import statements from Python code."""
+        imports = set()
+        patterns = [
+            r"^import\s+(\w+)",  # import foo
+            r"^from\s+(\w+)",  # from foo import ...
+            r"__import__\s*\(\s*['\"](\w+)['\"]",  # __import__('foo')
+            r"importlib\.import_module\s*\(\s*['\"](\w+)['\"]",  # importlib.import_module('foo')
+        ]
+        for pattern in patterns:
+            for match in re.finditer(pattern, content, re.MULTILINE):
+                imports.add(match.group(1))
+        return imports
+
     def _analyze_script(self, script_path: Path):
         """Analyze individual script for vulnerabilities"""
         try:
@@ -265,6 +279,9 @@ class EnhancedSecurityScanner:
             return
 
         relative_path = script_path.relative_to(self.skill_path)
+
+        # Extract imports for typosquatting analysis
+        self.all_imports.update(self._extract_imports(content))
 
         # Original checks
         self._check_command_injection(content, relative_path)
@@ -302,9 +319,9 @@ class EnhancedSecurityScanner:
                 self.CRITICAL,
                 "__builtins__ manipulation",
             ),
-            # Class traversal (sandbox escape)
+            # Class traversal (sandbox escape) - matches both __base__ and __bases__[n]
             (
-                r"__class__\.__base__\.__subclasses__",
+                r"__class__\.__bases?__(?:\[\d+\])?\.__subclasses__",
                 self.CRITICAL,
                 "Class hierarchy traversal (sandbox escape pattern)",
             ),
@@ -325,6 +342,24 @@ class EnhancedSecurityScanner:
                 r"importlib\.import_module\s*\([^)]*\+[^)]*\)",
                 self.CRITICAL,
                 "Dynamic module import with string manipulation",
+            ),
+            # Import hook manipulation (sys.meta_path)
+            (
+                r"sys\.meta_path\.(?:insert|append)\s*\(",
+                self.CRITICAL,
+                "Import hook manipulation (sys.meta_path)",
+            ),
+            # Path hook manipulation
+            (
+                r"sys\.path_hooks\.(?:insert|append)\s*\(",
+                self.CRITICAL,
+                "Path hook manipulation (sys.path_hooks)",
+            ),
+            # Suspicious sys.path modification at index 0
+            (
+                r"sys\.path\.insert\s*\(\s*0",
+                self.HIGH,
+                "Suspicious sys.path modification (priority injection)",
             ),
         ]
 
@@ -522,13 +557,27 @@ class EnhancedSecurityScanner:
             "pyyaml",
         }
 
-        # Known typosquats
+        # Known typosquats (common misspellings of popular packages)
         typosquat_map = {
             "request": "requests",
+            "requets": "requests",
+            "reqeusts": "requests",
             "urlib": "urllib",
+            "urrlib": "urllib",
             "numppy": "numpy",
+            "numby": "numpy",
             "beatifulsoup": "beautifulsoup4",
+            "beautifulsoup": "beautifulsoup4",
             "scikit-learn": "sklearn",
+            "sklean": "sklearn",
+            "padas": "pandas",
+            "pandsa": "pandas",
+            "djnago": "django",
+            "djanjo": "django",
+            "flak": "flask",
+            "flaask": "flask",
+            "cv2": "opencv-python",
+            "pythn": "python",
         }
 
         for imp in self.all_imports:
@@ -570,8 +619,34 @@ class EnhancedSecurityScanner:
                     }
                 )
 
-            # Check for code in markdown code blocks
+            # Check for YAML frontmatter in markdown files
             if file_path.suffix == ".md":
+                frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+                if frontmatter_match:
+                    yaml_content = frontmatter_match.group(1)
+                    # Check for dangerous YAML patterns
+                    dangerous_yaml_patterns = [
+                        (r"!\s*<", "YAML tag directive"),
+                        (r"!!python", "Python object deserialization"),
+                        (r"__proto__", "Prototype pollution"),
+                        (r"eval\s*\(", "eval in YAML"),
+                        (r"exec\s*\(", "exec in YAML"),
+                        (r"os\.system", "os.system in YAML"),
+                    ]
+                    for pattern, desc in dangerous_yaml_patterns:
+                        if re.search(pattern, yaml_content, re.IGNORECASE):
+                            self.findings.append(
+                                {
+                                    "severity": self.CRITICAL,
+                                    "category": "YAML Injection",
+                                    "title": f"Dangerous YAML pattern in reference: {desc}",
+                                    "location": str(file_path.relative_to(self.skill_path)),
+                                    "evidence": yaml_content[:200],
+                                    "impact": "Code execution via YAML deserialization",
+                                }
+                            )
+
+                # Check for code in markdown code blocks
                 code_blocks = re.findall(
                     r"```(?:python|bash|sh)\n(.*?)```", content, re.DOTALL
                 )
@@ -681,38 +756,358 @@ class EnhancedSecurityScanner:
                 }
             )
 
-    # [Include original helper methods: _check_command_injection, _check_data_exfiltration,
-    #  _check_credential_theft, _check_obfuscation, _check_hardcoded_secrets,
-    #  _check_network_operations, _check_file_operations, _get_code_context, _generate_report]
-
-    # Placeholder - keep originals from the base scanner
     def _check_command_injection(self, content: str, file_path: Path):
-        # Original implementation
-        pass
+        """Detect command injection patterns"""
+        patterns = [
+            # os module dangerous functions
+            (r"os\.system\s*\(", self.CRITICAL, "os.system() command execution"),
+            (r"os\.popen\s*\(", self.CRITICAL, "os.popen() command execution"),
+            (r"os\.spawn[lv]?[pe]?\s*\(", self.HIGH, "os.spawn*() command execution"),
+            (r"os\.exec[lv]?[pe]?\s*\(", self.CRITICAL, "os.exec*() command execution"),
+            # subprocess with shell=True
+            (
+                r"subprocess\.\w+\s*\([^)]*shell\s*=\s*True",
+                self.CRITICAL,
+                "subprocess with shell=True",
+            ),
+            # Direct exec/eval/compile
+            (r"(?<![a-zA-Z_])exec\s*\(", self.CRITICAL, "exec() code execution"),
+            (r"(?<![a-zA-Z_])eval\s*\(", self.CRITICAL, "eval() code execution"),
+            (r"(?<![a-zA-Z_])compile\s*\(", self.HIGH, "compile() code compilation"),
+            # Legacy commands module
+            (r"commands\.getoutput\s*\(", self.CRITICAL, "commands.getoutput() execution"),
+            (
+                r"commands\.getstatusoutput\s*\(",
+                self.CRITICAL,
+                "commands.getstatusoutput() execution",
+            ),
+            # ctypes for arbitrary code
+            (r"ctypes\.CDLL\s*\(", self.HIGH, "ctypes loading native library"),
+        ]
+
+        for pattern, severity, desc in patterns:
+            for match in re.finditer(pattern, content, re.IGNORECASE):
+                line_num = content[: match.start()].count("\n") + 1
+                self.findings.append(
+                    {
+                        "severity": severity,
+                        "category": "Command Injection",
+                        "title": desc,
+                        "location": f"{file_path}:{line_num}",
+                        "evidence": self._get_code_context(content, match.start()),
+                        "impact": "Arbitrary command/code execution",
+                    }
+                )
 
     def _check_data_exfiltration(self, content: str, file_path: Path):
-        # Original implementation
-        pass
+        """Detect data exfiltration patterns"""
+        patterns = [
+            # HTTP POST/PUT with data
+            (
+                r"requests\.(?:post|put|patch)\s*\([^)]*data\s*=",
+                self.HIGH,
+                "HTTP request sending data",
+            ),
+            (
+                r"requests\.(?:post|put|patch)\s*\([^)]*json\s*=",
+                self.HIGH,
+                "HTTP request sending JSON data",
+            ),
+            (
+                r"requests\.(?:post|put|patch)\s*\([^)]*files\s*=",
+                self.HIGH,
+                "HTTP request sending files",
+            ),
+            # urllib with data
+            (
+                r"urllib\.request\.urlopen\s*\([^)]*data\s*=",
+                self.HIGH,
+                "urllib sending data",
+            ),
+            (r"urllib\.request\.Request\s*\([^)]*data\s*=", self.HIGH, "urllib Request with data"),
+            # Socket operations
+            (r"socket\..*\.send(?:all|to)?\s*\(", self.MEDIUM, "Socket sending data"),
+            # http.client
+            (
+                r"http\.client\.HTTP\w*Connection.*\.request\s*\(",
+                self.MEDIUM,
+                "HTTP client request",
+            ),
+            # aiohttp
+            (r"aiohttp\.ClientSession\(\)\.post\s*\(", self.MEDIUM, "aiohttp POST request"),
+            # DNS exfiltration pattern
+            (
+                r"socket\.gethostbyname\s*\([^)]*\+",
+                self.HIGH,
+                "DNS lookup with string concatenation (possible DNS exfil)",
+            ),
+        ]
+
+        for pattern, severity, desc in patterns:
+            for match in re.finditer(pattern, content, re.IGNORECASE | re.DOTALL):
+                line_num = content[: match.start()].count("\n") + 1
+                self.findings.append(
+                    {
+                        "severity": severity,
+                        "category": "Data Exfiltration",
+                        "title": desc,
+                        "location": f"{file_path}:{line_num}",
+                        "evidence": self._get_code_context(content, match.start()),
+                        "impact": "Data may be sent to external servers",
+                    }
+                )
 
     def _check_credential_theft(self, content: str, file_path: Path):
-        # Original implementation
-        pass
+        """Detect credential/secret file access patterns"""
+        sensitive_paths = [
+            # SSH keys and config
+            (r"\.ssh[/\\]id_", self.CRITICAL, "SSH private key access"),
+            (r"\.ssh[/\\]config", self.HIGH, "SSH config access"),
+            (r"\.ssh[/\\]known_hosts", self.MEDIUM, "SSH known_hosts access"),
+            # AWS credentials
+            (r"\.aws[/\\]credentials", self.CRITICAL, "AWS credentials file access"),
+            (r"\.aws[/\\]config", self.HIGH, "AWS config access"),
+            # Other credential files
+            (r"\.netrc", self.CRITICAL, ".netrc credentials file access"),
+            (r"\.git-credentials", self.CRITICAL, "Git credentials file access"),
+            (r"\.pgpass", self.CRITICAL, "PostgreSQL password file access"),
+            (r"\.my\.?cnf", self.HIGH, "MySQL config file access"),
+            # System files
+            (r"/etc/passwd", self.MEDIUM, "/etc/passwd access"),
+            (r"/etc/shadow", self.CRITICAL, "/etc/shadow access"),
+            (r"/etc/sudoers", self.HIGH, "/etc/sudoers access"),
+            # Browser data
+            (r"\.mozilla[/\\]firefox", self.HIGH, "Firefox profile access"),
+            (r"\.config[/\\]google-chrome", self.HIGH, "Chrome profile access"),
+            # Keychain
+            (r"\.gnupg[/\\]", self.HIGH, "GPG keyring access"),
+        ]
+
+        for pattern, severity, desc in sensitive_paths:
+            if re.search(pattern, content, re.IGNORECASE):
+                line_num = 1
+                match = re.search(pattern, content, re.IGNORECASE)
+                if match:
+                    line_num = content[: match.start()].count("\n") + 1
+                self.findings.append(
+                    {
+                        "severity": severity,
+                        "category": "Credential Theft",
+                        "title": desc,
+                        "location": f"{file_path}:{line_num}",
+                        "evidence": self._get_code_context(content, match.start() if match else 0),
+                        "impact": "Sensitive credentials may be accessed or exfiltrated",
+                    }
+                )
 
     def _check_obfuscation(self, content: str, file_path: Path):
-        # Original implementation
-        pass
+        """Detect general code obfuscation patterns"""
+        patterns = [
+            # chr/ord combinations
+            (
+                r"chr\s*\(\s*\d+\s*\).*chr\s*\(\s*\d+\s*\)",
+                self.MEDIUM,
+                "Multiple chr() calls (string obfuscation)",
+            ),
+            # Hex sequences
+            (
+                r'["\'][^"\']*(?:\\x[0-9a-fA-F]{2}){4,}[^"\']*["\']',
+                self.MEDIUM,
+                "Hex-encoded string",
+            ),
+            # Very long lines of code (excluding data)
+            (
+                r"^[^#\n]{500,}$",
+                self.LOW,
+                "Very long line of code (possible obfuscation)",
+            ),
+            # Multiple nested function calls
+            (
+                r"(?:exec|eval)\s*\([^)]*(?:exec|eval)\s*\(",
+                self.CRITICAL,
+                "Nested exec/eval calls",
+            ),
+            # String reversal patterns
+            (r"\[::-1\]", self.MEDIUM, "String reversal (possible obfuscation)"),
+            # join with map/chr
+            (
+                r'["\'].*?["\']\.join\s*\(\s*map\s*\(\s*chr',
+                self.HIGH,
+                "join(map(chr,...)) pattern",
+            ),
+        ]
+
+        for pattern, severity, desc in patterns:
+            for match in re.finditer(pattern, content, re.MULTILINE):
+                line_num = content[: match.start()].count("\n") + 1
+                self.findings.append(
+                    {
+                        "severity": severity,
+                        "category": "Code Obfuscation",
+                        "title": desc,
+                        "location": f"{file_path}:{line_num}",
+                        "evidence": self._get_code_context(content, match.start()),
+                        "impact": "Code may be hiding malicious functionality",
+                    }
+                )
 
     def _check_hardcoded_secrets(self, content: str, file_path: Path):
-        # Original implementation
-        pass
+        """Detect hardcoded secrets and API keys"""
+        patterns = [
+            # Generic secret patterns
+            (
+                r'(?:api[_-]?key|apikey|secret[_-]?key|auth[_-]?token|access[_-]?token)\s*[=:]\s*["\'][^"\']{8,}["\']',
+                self.HIGH,
+                "Hardcoded API key or token",
+            ),
+            (
+                r'(?:password|passwd|pwd)\s*[=:]\s*["\'][^"\']{4,}["\']',
+                self.HIGH,
+                "Hardcoded password",
+            ),
+            # AWS keys
+            (r"AKIA[0-9A-Z]{16}", self.CRITICAL, "AWS Access Key ID"),
+            # Private keys
+            (
+                r"-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----",
+                self.CRITICAL,
+                "Embedded private key",
+            ),
+            (
+                r"-----BEGIN\s+(?:EC\s+)?PRIVATE\s+KEY-----",
+                self.CRITICAL,
+                "Embedded EC private key",
+            ),
+            # OpenAI keys
+            (r"sk-[a-zA-Z0-9]{20,}", self.HIGH, "Possible OpenAI API key"),
+            # GitHub tokens
+            (r"ghp_[a-zA-Z0-9]{36}", self.HIGH, "GitHub personal access token"),
+            (r"gho_[a-zA-Z0-9]{36}", self.HIGH, "GitHub OAuth token"),
+            # Slack tokens
+            (r"xox[baprs]-[a-zA-Z0-9-]+", self.HIGH, "Slack token"),
+            # Generic bearer token
+            (
+                r'["\']Bearer\s+[a-zA-Z0-9._-]{20,}["\']',
+                self.MEDIUM,
+                "Hardcoded Bearer token",
+            ),
+        ]
+
+        for pattern, severity, desc in patterns:
+            for match in re.finditer(pattern, content, re.IGNORECASE):
+                line_num = content[: match.start()].count("\n") + 1
+                self.findings.append(
+                    {
+                        "severity": severity,
+                        "category": "Hardcoded Secrets",
+                        "title": desc,
+                        "location": f"{file_path}:{line_num}",
+                        "evidence": "[REDACTED - secret pattern matched]",
+                        "impact": "Exposed credentials could lead to unauthorized access",
+                    }
+                )
 
     def _check_network_operations(self):
-        # Original implementation
-        pass
+        """Detect network operations across all script files"""
+        scripts_dir = self.skill_path / "scripts"
+        if not scripts_dir.exists():
+            return
+
+        patterns = [
+            # Socket operations
+            (r"socket\.socket\s*\(", self.MEDIUM, "Socket creation"),
+            (r"socket\..*\.connect\s*\(", self.HIGH, "Socket connection"),
+            (r"socket\..*\.bind\s*\(", self.HIGH, "Socket binding (server)"),
+            # HTTP libraries
+            (r"requests\.(?:get|post|put|delete|patch|head)\s*\(", self.MEDIUM, "HTTP request"),
+            (r"urllib\.request\.urlopen\s*\(", self.MEDIUM, "urllib request"),
+            (r"httpx\.\w+\s*\(", self.MEDIUM, "httpx request"),
+            # FTP
+            (r"ftplib\.FTP\s*\(", self.HIGH, "FTP connection"),
+            # SMTP
+            (r"smtplib\.SMTP\s*\(", self.HIGH, "SMTP connection (email sending)"),
+            # SSH/Paramiko
+            (r"paramiko\.SSHClient\s*\(", self.HIGH, "SSH client connection"),
+            # WebSockets
+            (r"websocket\.WebSocket\s*\(", self.MEDIUM, "WebSocket connection"),
+        ]
+
+        for script_file in scripts_dir.rglob("*"):
+            if not script_file.is_file() or not self._is_text_file(script_file):
+                continue
+            try:
+                content = script_file.read_text(encoding="utf-8", errors="ignore")
+                relative_path = script_file.relative_to(self.skill_path)
+
+                for pattern, severity, desc in patterns:
+                    for match in re.finditer(pattern, content, re.IGNORECASE):
+                        line_num = content[: match.start()].count("\n") + 1
+                        self.findings.append(
+                            {
+                                "severity": severity,
+                                "category": "Network Access",
+                                "title": desc,
+                                "location": f"{relative_path}:{line_num}",
+                                "evidence": self._get_code_context(content, match.start()),
+                                "impact": "Skill may communicate with external services",
+                            }
+                        )
+            except Exception:
+                pass
 
     def _check_file_operations(self):
-        # Original implementation
-        pass
+        """Detect dangerous file operations across all script files"""
+        scripts_dir = self.skill_path / "scripts"
+        if not scripts_dir.exists():
+            return
+
+        patterns = [
+            # Path traversal
+            (r'(?:open|Path)\s*\([^)]*\.\./', self.HIGH, "Path traversal attempt"),
+            (r'(?:open|Path)\s*\([^)]*\.\.\\\\', self.HIGH, "Path traversal attempt (Windows)"),
+            # Sensitive system paths
+            (r'(?:open|Path)\s*\([^)"]*/etc/', self.HIGH, "Access to /etc/ directory"),
+            (r'(?:open|Path)\s*\([^)"]*~/\.', self.HIGH, "Access to home dotfiles"),
+            (r'(?:open|Path)\s*\([^)"]*/root/', self.CRITICAL, "Access to /root/ directory"),
+            # Startup/persistence locations
+            (r'(?:open|Path)\s*\([^)]*\.bashrc', self.CRITICAL, "Access to .bashrc (persistence)"),
+            (r'(?:open|Path)\s*\([^)]*\.profile', self.HIGH, "Access to .profile (persistence)"),
+            (r'(?:open|Path)\s*\([^)]*\.zshrc', self.CRITICAL, "Access to .zshrc (persistence)"),
+            (r'(?:open|Path)\s*\([^)]*crontab', self.CRITICAL, "Access to crontab (persistence)"),
+            (r'(?:open|Path)\s*\([^)]*autostart', self.HIGH, "Access to autostart (persistence)"),
+            # Writing with dangerous modes
+            (
+                r'open\s*\([^)]*,\s*["\']w["\']',
+                self.MEDIUM,
+                "File write operation",
+            ),
+            # shutil dangerous operations
+            (r"shutil\.rmtree\s*\(", self.HIGH, "Recursive directory deletion"),
+            (r"shutil\.move\s*\(", self.MEDIUM, "File/directory move"),
+        ]
+
+        for script_file in scripts_dir.rglob("*"):
+            if not script_file.is_file() or not self._is_text_file(script_file):
+                continue
+            try:
+                content = script_file.read_text(encoding="utf-8", errors="ignore")
+                relative_path = script_file.relative_to(self.skill_path)
+
+                for pattern, severity, desc in patterns:
+                    for match in re.finditer(pattern, content, re.IGNORECASE):
+                        line_num = content[: match.start()].count("\n") + 1
+                        self.findings.append(
+                            {
+                                "severity": severity,
+                                "category": "File Operations",
+                                "title": desc,
+                                "location": f"{relative_path}:{line_num}",
+                                "evidence": self._get_code_context(content, match.start()),
+                                "impact": "Potentially dangerous file system access",
+                            }
+                        )
+            except Exception:
+                pass
 
     def _get_code_context(
         self, content: str, position: int, lines_before=1, lines_after=1
@@ -762,7 +1157,7 @@ class EnhancedSecurityScanner:
         report = {
             "skill": self.skill_path.name,
             "location": str(self.skill_path),
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "scanner_version": "2.0-enhanced",
             "summary": {
                 "overall_risk": overall_risk,

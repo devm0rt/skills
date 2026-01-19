@@ -8,7 +8,7 @@ license: Complete terms in LICENSE.txt
 
 ## Overview
 
-Evaluate Claude Skills from any source (GitHub, marketplaces, ZIP files, local directories) across five critical dimensions using balanced scoring. Security analysis leverages the skill-security-analyzer skill for automated vulnerability detection.
+Evaluate Claude Skills from any source (GitHub, marketplaces, ZIP files, local directories) across five critical dimensions using balanced scoring. Security analysis leverages the analyzing-skill-security skill for automated vulnerability detection.
 
 ## Output Modes
 
@@ -32,7 +32,7 @@ Users select one of three analysis modes:
 
 ### 2. Security (30%)
 
-**Evaluate:** Use skill-security-analyzer for automated scanning. Check for command injection, data exfiltration, YAML injection, file operation safety, hardcoded secrets, input validation, supply chain risks, obfuscation.
+**Evaluate:** Use analyzing-skill-security for automated scanning. Check for command injection, data exfiltration, YAML injection, file operation safety, hardcoded secrets, input validation, supply chain risks, obfuscation.
 
 **Scoring based on risk rating:**
 - SAFE/LOW: 90-100
@@ -102,7 +102,7 @@ Read SKILL.md to understand:
 
 ### Step 3: Run Security Analysis
 
-**Always invoke skill-security-analyzer first** to get:
+**Always invoke analyzing-skill-security first** to get:
 - Automated vulnerability detection
 - Malicious code pattern identification
 - Risk rating (CRITICAL/HIGH/MEDIUM/LOW/SAFE)
@@ -185,4 +185,4 @@ Common mistakes and issues to flag. Quick pattern matching reference.
 
 ---
 
-**Important:** Always run skill-security-analyzer before evaluating other dimensions.
+**Important:** Always run analyzing-skill-security before evaluating other dimensions.

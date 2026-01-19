@@ -1,5 +1,5 @@
 ---
-name: skill-security-analyzer
+name: analyzing-skill-security
 description: >
   Comprehensive security analysis for Claude Code skills with P0-P3 enhancements.
   Detects malicious code, obfuscation, YAML injection, typosquatting, time bombs,

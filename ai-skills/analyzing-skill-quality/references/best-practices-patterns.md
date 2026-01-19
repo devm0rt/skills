@@ -9,7 +9,7 @@ This reference documents proven patterns from high-quality Claude Skills analyze
 **What makes it excellent:**
 
 1. **Crystal Clear Purpose**
-   - Name: `skill-security-analyzer`
+   - Name: `analyzing-skill-security`
    - Description: "Security analysis tool for Claude Code skills and plugins..."
    - Immediately obvious what it does
 
@@ -104,7 +104,7 @@ description: [Action] for [context]. Use when [trigger scenario]. Trigger phrase
 
 ```yaml
 ---
-name: skill-security-analyzer
+name: analyzing-skill-security
 description: Security analysis tool for Claude Code skills and plugins. Use when analyzing skills from marketplaces, zip files, or local directories for security vulnerabilities, malicious code patterns, supply chain risks, and best practice violations. Triggers on requests like "analyze this skill for security issues", "check if this plugin is safe", "audit skill security", or "review skill for malware".
 ---
 ```

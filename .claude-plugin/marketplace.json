@@ -28,6 +28,8 @@
       "strict": false,
       "skills": [
         "./mcp-builder",
+        "./analyzing-skill-quality",
+        "./skill-security-analyzer",
         "./skill-creator"
       ]
     },

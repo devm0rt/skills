@@ -28,7 +28,7 @@
       "strict": false,
       "skills": [
         "./mcp-builder",
-        "./skill-quality-analyzer",
+        "./analyzing-skill-quality",
         "./skill-security-analyzer",
         "./skill-creator"
       ]
